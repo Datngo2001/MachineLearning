@@ -1,0 +1,9 @@
+*.mp4
+.history
+saved_var
+figs
+saved_objects
+models
+figures
+*.zip
+*.csv
