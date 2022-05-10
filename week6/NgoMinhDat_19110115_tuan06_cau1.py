@@ -257,26 +257,41 @@ print('\n')
 # Info: SkLearn automatically runs OvA when you try to 
 #       use a binary classifier for a multiclass classification.
 # Warning: takes time for new run!
-sample_id = 2
+sample_id = 3
 plot_(X_train[sample_id], y_train[sample_id])
 
 new_run = False 
 if new_run == True:
-    sgd_clf.fit(X_train, y_train) # y_train, not y_train_0
+    #
+    # train with y_train that have multiple class
+    # sgd is single class classifier but we can apply One versus all to obtain multi class
+    #
+    sgd_clf.fit(X_train, y_train) 
     joblib.dump(sgd_clf,'saved_var/sgd_clf_multi')
 else:
     sgd_clf = joblib.load('saved_var/sgd_clf_multi')
-# Try prediction
+
+#
+# predict and compare result
+#
 sgd_clf.predict([X_train[sample_id]])
 y_train[sample_id]
-# To see scores from classifers
+
+#
+# OvA run many prediction for all class 
+#   each prediction with 2 class A and not A
+#   then return the score that the sample belong to A.
+# The prediction that has the high score is considered as result.
+#
 sgd_clf.classes_
 sample_scores = sgd_clf.decision_function([X_train[sample_id]]) 
-sample_scores
+sample_scores # array of prediction score
 class_with_max_score = np.argmax(sample_scores)
-class_with_max_score
+class_with_max_score # the class that have the highest score
 
-#RANDOM FOREST
+#
+# RANDOM FOREST
+#
 new_run = False 
 rfc = RandomForestClassifier(n_estimators=70, oob_score=True, random_state=101)
 if new_run == True:
@@ -291,8 +306,12 @@ y_train[sample_id]
 
 # 5.2. Force sklearn to run OvO (OneVsOneClassifier) or OvA (OneVsRestClassifier)
 from sklearn.multiclass import OneVsRestClassifier
-# Warning: takes time for new run! 
+
+#
+# Crate OVA classifier base of Single class classifier
+#
 ova_clf = OneVsRestClassifier(SGDClassifier(random_state=42))
+
 new_run = False 
 if new_run == True:
     ova_clf.fit(X_train, y_train)
@@ -300,6 +319,7 @@ if new_run == True:
 else:
     ova_clf = joblib.load('saved_var/ova_clf')
 len(ova_clf.estimators_)
+
 ova_clf.classes_
 sample_scores = ova_clf.decision_function([X_train[sample_id]]) 
 sample_scores 
@@ -307,7 +327,10 @@ class_with_max_score = np.argmax(sample_scores)
 class_with_max_score
 
 from sklearn.multiclass import OneVsOneClassifier
-# Warning: takes time for new run! 
+#
+# OvO run many classifier for each pair of class
+#   that class most of classifier vote for is the result
+#
 ovo_clf = OneVsOneClassifier(SGDClassifier(random_state=42))
 new_run = False 
 if new_run == True:
@@ -317,8 +340,17 @@ else:
     ovo_clf = joblib.load('saved_var/ovo_clf')
 len(ovo_clf.estimators_) 
 ovo_clf.classes_
+
+#
+# Return array that contain the number of classisfier
+#  that vote for the class in that position
+#
 sample_scores = ovo_clf.decision_function([X_train[sample_id]]) 
 sample_scores
+
+#
+# get class that most of classifier vote for
+#
 class_with_max_score = np.argmax(sample_scores)
 class_with_max_score
  
@@ -326,8 +358,10 @@ class_with_max_score
 # In[6]: EVALUATE CLASSIFIERS
 # 6.1. SGDClassifier  
 # Warning: takes time for new run! 
+from sklearn.model_selection import cross_val_score
+
 sgd_acc=0;
-new_run = True
+new_run = False
 if new_run == True:
     sgd_acc = cross_val_score(sgd_clf, X_train, y_train, cv=3, scoring="accuracy")
     joblib.dump(sgd_acc,'saved_var/sgd_acc_multi')
@@ -349,7 +383,7 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train.astype(np.float64))
 # 7.1. SGDClassifier (benefited from feature scaling)
 # Warning: takes time for new run! 
-new_run = True
+new_run = False
 sgd_acc_after_scaling=0;
 if new_run == True:
     sgd_acc_after_scaling = cross_val_score(sgd_clf, X_train_scaled, y_train, cv=3, scoring="accuracy", n_jobs=4)
@@ -358,7 +392,7 @@ else:
     sgd_acc_after_scaling = joblib.load('saved_var/sgd_acc_after_scaling')
 # 7.2. RandomForestClassifier  
 # Warning: takes time for new run! 
-new_run = True
+new_run = False
 forest_acc_after_scaling=0;
 if new_run == True:
     forest_acc_after_scaling = cross_val_score(rfc, X_train_scaled, y_train, cv=3, scoring="accuracy", n_jobs=4)
@@ -366,6 +400,7 @@ if new_run == True:
 else:
     forest_acc_after_scaling = joblib.load('saved_var/forest_acc_after_scaling')
 
+# After scaling the code increased in both classifier
 
 # In[8]: ERROR ANALYSIS 
 # NOTE: Here we skipped steps (eg. trying other data preparation options, hyperparameter tunning...)
@@ -480,6 +515,8 @@ if let_plot:
 y_train_large = (y_train >= 7)
 y_train_odd = (y_train % 2 == 1)
 y_multilabel = np.c_[y_train_large, y_train_odd]
+
+new_run = True
 
 # 10.2. Try KNeighborsClassifier    
 # Note: KNeighborsClassifier supports multilabel classification. Not all classifiers do. 
