@@ -278,7 +278,6 @@ r2score, rmse = r2score_and_rmse(model, processed_train_set_val, train_set_label
 print('\nR2 score (on training data, best=1):', r2score)
 print("Root Mean Square Error: ", rmse.round(decimals=1))
         
-# 5.1.3 Predict labels for some training instances
 print("\nInput data: \n", train_set.iloc[0:9])
 print("\nPredictions: ", model.predict(processed_train_set_val[0:9]).round(decimals=1))
 print("Labels:      ", list(train_set_labels[0:9]))
@@ -343,12 +342,6 @@ from sklearn.preprocessing import PolynomialFeatures
 poly_feat_adder = PolynomialFeatures(degree = 2) # add high-degree features to the data
 train_set_poly_added = poly_feat_adder.fit_transform(processed_train_set_val)
 new_training = 10
-if new_training:
-    model = LinearRegression()
-    model.fit(train_set_poly_added, train_set_labels)
-    store_model(model, model_name = "PolinomialRegression")      
-else:
-    model = load_model("PolinomialRegression")
 # 5.4.2 Compute R2 score and root mean squared error
 print('\n____________ Polinomial regression ____________')
 r2score, rmse = r2score_and_rmse(model, train_set_poly_added, train_set_labels)
